@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finora — ระบบบริหารจัดการการเงินส่วนตัว (Personal Finance System)</title>
+  <meta name="description" content="Finora ระบบบันทึกและจัดการรายรับ–รายจ่ายส่วนบุคคล ธีมสีชมพูพาสเทล วิเคราะห์พฤติกรรมการเงิน วางแผนงบประมาณ พร้อมเชื่อมต่อ Supabase และรองรับ Vercel">
+  
+  <!-- Google Fonts: Prompt & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- External Libraries (Chart.js & Supabase JS) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Ambient Glowing Orbs -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- ========================================================================= -->
+  <!-- AUTHENTICATION GATEWAY SCREEN (เข้าสู่ระบบ / สมัครสมาชิก) -->
+  <!-- ========================================================================= -->
+  <div id="authGatewayScreen" class="auth-gateway-screen">
+    <div class="auth-card-container">
+      
+      <!-- Showcase Side -->
+      <div class="auth-showcase-side">
+        <div>
+          <div class="brand" style="margin-bottom:12px;">
+            <div class="brand-icon">🌸</div>
+            <div>
+              <div class="brand-name">Finora</div>
+              <div class="brand-tag">Personal Finance Manager</div>
+            </div>
+          </div>
+          <h2>วางแผนการเงินอย่างมีสไตล์<br><span style="color:var(--pink-500);">สู่ชีวิตที่เบาสบาย</span></h2>
+          <p>ระบบบันทึกและจัดการรายรับ–รายจ่ายส่วนบุคคล ในธีมสีชมพูพาสเทลระดับพรีเมียม วิเคราะห์กระแสเงินสด พร้อมแจ้งเตือนงบประมาณ</p>
+        </div>
+
+        <div class="auth-hero-img-wrap">
+          <img src="assets/images/hero.jpg" alt="Finora 3D Visual">
+        </div>
+
+        <div class="auth-feature-pills">
+          <div class="auth-feature-pill">✨ จดบันทึกด่วนใน 3 วิ</div>
+          <div class="auth-feature-pill">📈 กราฟแนวโน้ม Chart.js</div>
+          <div class="auth-feature-pill">🔔 แจ้งเตือนเมื่อใกล้เต็มงบ</div>
+          <div class="auth-feature-pill">⚡ เชื่อมต่อ Supabase Cloud</div>
+        </div>
+      </div>
+
+      <!-- Form Side -->
+      <div class="auth-form-side">
+        <!-- Auth Tabs -->
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ (Sign In)</button>
+          <button type="button" class="auth-tab-btn" id="tabSignupBtn" onclick="switchAuthTab('signup')">สมัครสมาชิก (Sign Up)</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginFormContainer" class="auth-form-view active">
+          <form id="authLoginForm">
+            <div class="form-group">
+              <label class="form-label">อีเมล (Email) *</label>
+              <input type="email" id="loginEmailInput" class="form-control" placeholder="name@example.com" value="demo@finora.app" required>
+            </div>
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label class="form-label">รหัสผ่าน (Password) *</label>
+                <a href="javascript:void(0)" onclick="showToast('โหมดทดลองใช้งาน สามารถใส่รหัสผ่านใดก็ได้ หรือกดปุ่มเข้าใช้งานด่วนได้เลยค่ะ', 'info')" style="font-size:0.78rem;color:var(--pink-600);text-decoration:none;">ลืมรหัสผ่าน?</a>
+              </div>
+              <input type="password" id="loginPasswordInput" class="form-control" placeholder="••••••••" value="123456" required>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+              <input type="checkbox" id="rememberMeCheckbox" checked style="accent-color:var(--pink-500);width:16px;height:16px;cursor:pointer;">
+              <label for="rememberMeCheckbox" style="font-size:0.85rem;color:var(--text-secondary);cursor:pointer;">จดจำการเข้าสู่ระบบ</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;">
+              🌸 เข้าสู่ระบบ (Sign In)
+            </button>
+          </form>
+
+          <div class="auth-divider">
+            <span>หรือเข้าทดลองใช้งานทันที</span>
+          </div>
+
+          <button type="button" class="btn btn-guest-login" onclick="handleQuickDemoLogin()">
+            ⚡ เข้าใช้งานด่วนด้วยบัญชีทดลอง (1-Click Guest Mode)
+          </button>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signupFormContainer" class="auth-form-view">
+          <form id="authSignupForm">
+            <div class="form-group">
+              <label class="form-label">ชื่อ-นามสกุล หรือชื่อเล่น *</label>
+              <input type="text" id="signupNameInput" class="form-control" placeholder="เช่น นภัสสร สุขเกษม" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">อีเมล (Email) *</label>
+              <input type="email" id="signupEmailInput" class="form-control" placeholder="name@example.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">รหัสผ่าน (Password) *</label>
+              <input type="password" id="signupPasswordInput" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" required minlength="6">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ยืนยันรหัสผ่าน (Confirm Password) *</label>
+              <input type="password" id="signupConfirmPasswordInput" class="form-control" placeholder="พิมพ์รหัสผ่านอีกครั้ง" required minlength="6">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;margin-top:6px;">
+              🌸 ยืนยันสมัครสมาชิกใหม่
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand" onclick="switchView('dashboard-view')">
+      <div class="brand-icon">🌸</div>
+      <div>
+        <div class="brand-name">Finora</div>
+        <div class="brand-tag">Personal Finance Manager</div>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <a class="nav-item active" data-view="dashboard-view">📊 ภาพรวม</a>
+      <a class="nav-item" data-view="transactions-view">📝 รายการ</a>
+      <a class="nav-item" data-view="budgets-view">🎯 งบประมาณ</a>
+      <a class="nav-item" data-view="analytics-view">💡 วิเคราะห์</a>
+      <a class="nav-item" data-view="pricing-view">💎 สมาชิก</a>
+      <a class="nav-item" data-view="admin-view">⚙️ หลังบ้าน</a>
+      <a class="nav-item" data-view="presentation-view">🌟 สื่อนำเสนอ</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn btn-primary btn-sm" onclick="openAddTransactionModal('expense')">
+        <span>＋ บันทึกด่วน</span>
+      </button>
+
+      <div class="user-profile-badge" onclick="switchView('pricing-view')" title="คลิกดูข้อมูลแพ็กเกจสมาชิก">
+        <img id="headerUserAvatar" class="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Avatar">
+        <div>
+          <div class="user-name-text" id="headerUserName">นภัสสร สุขเกษม</div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span id="headerTierPill" class="tier-pill plus">PLUS</span>
+            <span id="headerStatusPill" class="badge-tag-change">โหมดจำลอง</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="logout-btn" onclick="handleLogout()" title="ออกจากระบบ">
+        🚪 ออก
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="app-container">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: DASHBOARD (ภาพรวมการเงิน) -->
+    <!-- ========================================================================= -->
+    <section id="dashboard-view" class="view-section active-view">
+      
+      <!-- Presentation Hero Card -->
+      <div class="hero-presentation-card glass-card">
+        <div class="hero-text-content">
+          <h1>จัดการการเงินอย่างชาญฉลาด<br>ด้วย <span>Finora Pastel</span></h1>
+          <p>เว็บแอปพลิเคชันสำหรับบันทึกและจัดการรายรับ–รายจ่ายส่วนบุคคล ติดตามกระแสเงินสด วิเคราะห์พฤติกรรมการใช้จ่าย และวางแผนสู่อิสรภาพทางการเงินอย่างสบายใจ</p>
+          <div class="hero-badges-row">
+            <div class="hero-badge-item">☁️ เชื่อมต่อ Supabase Cloud</div>
+            <div class="hero-badge-item">🚀 พร้อม Deploy บน Vercel</div>
+            <div class="hero-badge-item">🔔 แจ้งเตือนงบประมาณเรียลไทม์</div>
+            <div class="hero-badge-item">💳 ระบบเก็บค่าสมาชิก (Monetization)</div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="openAddTransactionModal('expense')">🌸 บันทึกรายจ่าย</button>
+            <button class="btn btn-secondary" onclick="openAddTransactionModal('income')">💰 บันทึกรายรับ</button>
+            <button class="btn btn-soft" onclick="switchView('presentation-view')">🖼️ ดูภาพรวมการนำเสนอ</button>
+          </div>
+        </div>
+        <div class="hero-visual-frame">
+          <img src="assets/images/hero.jpg" alt="Finora 3D Finance Presentation" loading="lazy">
+        </div>
+      </div>
+
+      <!-- Smart Budget Alert Container -->
+      <div id="alertBannerContainer" class="alert-banner-container"></div>
+
+      <!-- Financial Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="glass-card metric-card">
+          <div class="metric-header">
+            <span class="metric-title">ยอดเงินคงเหลือสุทธิ</span>
+            <div class="metric-icon-box icon-balance">💳</div>
+          </div>
+          <div class="metric-value" id="metricNetBalance">0 ฿</div>
+          <div class="metric-subtext">
+            <span class="badge-tag-change positive">✓ กระแสเงินสดสุทธิ</span>
+            <span>ประจำเดือนนี้</span>
+          </div>
+        </div>
+
+        <div class="glass-card metric-card">
+          <div class="metric-header">
+            <span class="metric-title">รายรับรวมทั้งเดือน</span>
+            <div class="metric-icon-box icon-income">💰</div>
+          </div>
+          <div class="metric-value" id="metricTotalIncome" style="color:#10B981;">0 ฿</div>
+          <div class="metric-subtext">
+            <span>รวมเงินเดือนและรายได้เสริม</span>
+          </div>
+        </div>
+
+        <div class="glass-card metric-card">
+          <div class="metric-header">
+            <span class="metric-title">รายจ่ายรวมทั้งเดือน</span>
+            <div class="metric-icon-box icon-expense">🛍️</div>
+          </div>
+          <div class="metric-value" id="metricTotalExpense" style="color:var(--pink-600);">0 ฿</div>
+          <div class="metric-subtext">
+            <span class="badge-tag-change negative">รายจ่ายสะสม</span>
+            <span>เปรียบเทียบกับงบ</span>
+          </div>
+        </div>
+
+        <div class="glass-card metric-card">
+          <div class="metric-header">
+            <span class="metric-title">อัตราการออมเงิน</span>
+            <div class="metric-icon-box icon-savings">🌟</div>
+          </div>
+          <div class="metric-value" id="metricSavingsRate" style="color:#8B5CF6;">0%</div>
+          <div class="metric-subtext">
+            <span>เป้าหมายมาตรฐาน 30%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Primary Charts Section -->
+      <div class="charts-grid">
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>📈 กราฟแนวโน้มกระแสเงินสดสะสม (Cash Flow)</h3>
+              <p>เปรียบเทียบการเติบโตของรายรับและรายจ่ายในเดือนกันยายน 2026</p>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="cashflowTrendChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>🍩 สัดส่วนรายจ่ายตามหมวดหมู่</h3>
+              <p>สัดส่วนเปอร์เซ็นต์ค่าใช้จ่าย</p>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="expenseDonutChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Row: Daily Spend & Budget Meters -->
+      <div class="secondary-grid">
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>📊 การใช้จ่ายรายวัน (Daily Spending Rhythm)</h3>
+              <p>ยอดใช้จ่ายจริงแต่ละวันเพื่อตรวจจับวันที่มีการใช้เงินสูงผิดปกติ</p>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper" style="height:220px;">
+            <canvas id="dailySpendBarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>🎯 งบประมาณรายหมวดหมู่</h3>
+              <p>สถานะการใช้งบแต่ละหมวด</p>
+            </div>
+            <button class="btn btn-sm btn-soft" onclick="switchView('budgets-view')">จัดการ</button>
+          </div>
+          <div id="dashboardBudgetMeters" class="budget-meter-list"></div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions Feed -->
+      <div class="glass-card transaction-table-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div>
+            <h3 style="font-size:1.15rem;font-weight:600;">🧾 รายการธุรกรรมล่าสุด</h3>
+            <p style="font-size:0.82rem;color:var(--text-muted);">5 รายการล่าสุดที่มีการบันทึกในระบบ</p>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="switchView('transactions-view')">ดูทั้งหมด →</button>
+        </div>
+        <div class="table-responsive">
+          <table class="finora-table">
+            <thead>
+              <tr>
+                <th>หมวดหมู่ / วันที่</th>
+                <th>บันทึกช่วยจำ</th>
+                <th>ช่องทางชำระ</th>
+                <th>จำนวนเงิน</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="recentTransactionsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: TRANSACTIONS (บันทึกและค้นหารายการ) -->
+    <!-- ========================================================================= -->
+    <section id="transactions-view" class="view-section">
+      <div class="action-toolbar">
+        <div class="search-filter-box">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="txSearchInput" placeholder="ค้นหาบันทึก, หมวดหมู่, หรือแฮชแท็ก...">
+          </div>
+          <select id="txTypeFilter" class="filter-select">
+            <option value="all">ทุกประเภท</option>
+            <option value="income">เฉพาะรายรับ</option>
+            <option value="expense">เฉพาะรายจ่าย</option>
+          </select>
+          <select id="txCategoryFilter" class="filter-select">
+            <option value="all">ทุกหมวดหมู่</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-secondary" id="exportCsvBtn">📥 ส่งออก CSV</button>
+          <button class="btn btn-primary" onclick="openAddTransactionModal('expense')">＋ บันทึกรายการ</button>
+        </div>
+      </div>
+
+      <div class="glass-card transaction-table-card">
+        <div class="table-responsive">
+          <table class="finora-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>หมวดหมู่</th>
+                <th>บันทึกช่วยจำ</th>
+                <th>ช่องทาง</th>
+                <th>จำนวนเงิน</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="allTransactionsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: BUDGETS (ตั้งงบประมาณและแจ้งเตือน) -->
+    <!-- ========================================================================= -->
+    <section id="budgets-view" class="view-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <h2 style="font-size:1.6rem;font-weight:700;">🎯 ตั้งงบประมาณ & ระบบแจ้งเตือนอัจฉริยะ</h2>
+          <p style="color:var(--text-secondary);">ควบคุมวินัยทางการเงินด้วยการกำหนดงบประมาณรายหมวดหมู่ พร้อมแจ้งเตือนก่อนเงินหมด</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('budgetModal')">＋ ตั้งงบประมาณใหม่</button>
+      </div>
+
+      <div class="glass-card" style="padding:24px;margin-bottom:24px;">
+        <h3 style="font-size:1.15rem;font-weight:600;margin-bottom:16px;">ความคืบหน้างบประมาณประจำเดือน</h3>
+        <div id="fullBudgetList" class="budget-meter-list"></div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: ANALYTICS & INSIGHTS (วิเคราะห์พฤติกรรม) -->
+    <!-- ========================================================================= -->
+    <section id="analytics-view" class="view-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <h2 style="font-size:1.6rem;font-weight:700;">💡 วิเคราะห์พฤติกรรมการใช้จ่าย (Financial Insights)</h2>
+          <p style="color:var(--text-secondary);">สรุปข้อมูลอัจฉริยะ วิเคราะห์จุดรั่วไหลของเงิน และแนะนำแนวทางการออมส่วนบุคคล</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-bottom:24px;">
+        <div class="glass-card" style="padding:24px;">
+          <h3 style="font-size:1.15rem;font-weight:600;margin-bottom:16px;">คำแนะนำและข้อสังเกตจากระบบ</h3>
+          <div id="insightsList"></div>
+        </div>
+
+        <div class="glass-card" style="padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+          <img src="assets/images/analytics.jpg" alt="Analytics Visual" style="width:100%;max-height:260px;object-fit:cover;border-radius:var(--radius-md);margin-bottom:14px;box-shadow:var(--glass-shadow);">
+          <h4 style="font-size:1.1rem;font-weight:600;margin-bottom:6px;">คะแนนสุขภาพทางการเงิน (Financial Score)</h4>
+          <div style="font-size:2.2rem;font-weight:700;color:#10B981;margin-bottom:4px;">88 / 100</div>
+          <p style="font-size:0.85rem;color:var(--text-secondary);max-width:380px;">ยอดเยี่ยม! คุณมีวินัยทางการเงินที่ดี อัตราส่วนการออมเกินเกณฑ์และไม่มีภาระหนี้สินที่ไม่จำเป็น</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: PRICING (ระบบเก็บค่าผู้ใช้ & แพ็กเกจสมาชิก) -->
+    <!-- ========================================================================= -->
+    <section id="pricing-view" class="view-section">
+      <div style="text-align:center;max-width:700px;margin:0 auto 28px;">
+        <h2 style="font-size:1.8rem;font-weight:700;margin-bottom:8px;">💎 แพ็กเกจการใช้งาน Finora (Subscription Plans)</h2>
+        <p style="color:var(--text-secondary);">เลือกระดับสมาชิกที่ตอบโจทย์ความต้องการทางการเงินของคุณ รองรับการชำระผ่าน PromptPay และบัตรเครดิต</p>
+      </div>
+
+      <div id="pricingCardsContainer" class="pricing-grid"></div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 6: ADMIN (ระบบตั้งค่าหลังบ้าน & จัดการฐานข้อมูล) -->
+    <!-- ========================================================================= -->
+    <section id="admin-view" class="view-section">
+      <div style="margin-bottom:24px;">
+        <h2 style="font-size:1.6rem;font-weight:700;">⚙️ ระบบจัดการหลังบ้าน (Admin & System Settings)</h2>
+        <p style="color:var(--text-secondary);">จัดการหมวดหมู่มาตรฐาน เชื่อมต่อ Supabase Cloud Database และตรวจสอบสถานะระบบ</p>
+      </div>
+
+      <div class="glass-card" style="padding:28px;margin-bottom:24px;">
+        <h3 style="font-size:1.2rem;font-weight:600;margin-bottom:14px;">⚡ การเชื่อมต่อ Supabase Database</h3>
+        <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:16px;">
+          สามารถนำค่า <strong>Project URL</strong> และ <strong>Anon Public Key</strong> จาก Supabase Dashboard มาใส่ที่นี่ เพื่อให้ระบบซิงค์ข้อมูลขึ้น Cloud ทันที (หรือปล่อยว่างไว้เพื่อทดลองใช้งานในโหมด Local Demo)
+        </p>
+
+        <form id="supabaseConfigForm" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div>
+            <label class="form-label">Supabase URL</label>
+            <input type="text" id="supabaseUrlInput" class="form-control" placeholder="https://xyzcompany.supabase.co">
+          </div>
+          <div>
+            <label class="form-label">Supabase Anon Key</label>
+            <input type="password" id="supabaseKeyInput" class="form-control" placeholder="eyJh...">
+          </div>
+          <div style="grid-column:1 / -1;display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary">💾 บันทึกการเชื่อมต่อ</button>
+            <button type="button" class="btn btn-secondary" id="resetSeedBtn">🔄 รีเซ็ตข้อมูลจำลองสำหรับ Demo</button>
+          </div>
+        </form>
+
+        <div style="margin-top:20px;">
+          <h4 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">คำสั่ง SQL สร้างตาราง (Supabase SQL Schema)</h4>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px;">คัดลอกคำสั่งนี้ไปวางใน <strong>Supabase SQL Editor</strong> เพื่อสร้างตารางทั้งหมดพร้อม RLS Policies:</p>
+          <div class="code-snippet-box">
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('sqlCodeBlock').innerText);showToast('คัดลอกคำสั่ง SQL แล้ว!');">คัดลอก SQL</button>
+            <pre id="sqlCodeBlock">-- ไฟล์ supabase_schema.sql พร้อมใช้งานในโปรเจกต์
+-- สร้างตาราง profiles, categories, transactions, budgets, subscriptions
+-- พร้อม RLS และ Trigger สร้างโปรไฟล์อัตโนมัติเมื่อสมัครสมาชิก
+SELECT 'Finora schema ready in supabase_schema.sql' AS status;</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Management -->
+      <div class="glass-card" style="padding:28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div>
+            <h3 style="font-size:1.2rem;font-weight:600;">🏷️ จัดการหมวดหมู่รายรับ–รายจ่าย</h3>
+            <p style="font-size:0.85rem;color:var(--text-secondary);">เพิ่มหรือปรับแต่งหมวดหมู่ให้เข้ากับไลฟ์สไตล์ของคุณ</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('categoryModal')">＋ เพิ่มหมวดหมู่</button>
+        </div>
+        <div id="adminCategoryList"></div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 7: PRESENTATION SHOWCASE (หน้าสรุปเพื่อนำเสนอผลงาน) -->
+    <!-- ========================================================================= -->
+    <section id="presentation-view" class="view-section">
+      <div style="text-align:center;max-width:850px;margin:0 auto 36px;">
+        <div style="display:inline-block;background:var(--pink-100);color:var(--pink-600);padding:4px 16px;border-radius:var(--radius-full);font-size:0.85rem;font-weight:600;margin-bottom:12px;">
+          🌟 โครงงานนำเสนอระบบ: Finora Personal Finance
+        </div>
+        <h1 style="font-size:2.4rem;font-weight:700;line-height:1.2;margin-bottom:14px;">
+          ระบบบริหารจัดการการเงินส่วนบุคคล<br><span style="color:var(--pink-500);">Finora — Pastel Finance Architecture</span>
+        </h1>
+        <p style="font-size:1.05rem;color:var(--text-secondary);">
+          ออกแบบและพัฒนาด้วยเทคโนโลยีเว็บสมัยใหม่ ธีมสีชมพูพาสเทลระดับพรีเมียม ตอบโจทย์ผู้ใช้งานที่ต้องการบันทึกรายรับรายจ่ายอย่างมีความสุข รองรับการ Deploy บน Vercel พร้อมระบบฐานข้อมูล Supabase และการสร้างรายได้ (Monetization)
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:32px;">
+        <div class="glass-card" style="padding:28px;">
+          <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:14px;color:var(--pink-600);">🎯 วัตถุประสงค์และจุดเด่นของระบบ</h3>
+          <ul style="padding-left:20px;font-size:0.95rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:10px;">
+            <li><strong>จดบันทึกได้ง่ายและรวดเร็ว:</strong> ระบบ Quick Action และปุ่มลัด รองรับการแยกหมวดหมู่และช่องทางชำระเงิน</li>
+            <li><strong>Dashboard & กราฟวิเคราะห์สมบูรณ์แบบ:</strong> ใช้ Chart.js แสดงผลเส้นแนวโน้มกระแสเงินสด สัดส่วนรายจ่าย และการใช้จ่ายรายวัน</li>
+            <li><strong>ระบบแจ้งเตือนอัจฉริยะ (Smart Alerts):</strong> เตือนเมื่อใช้จ่ายใกล้หรือเกินงบประมาณที่กำหนดไว้ เพื่อป้องกันการใช้เงินเกินตัว</li>
+            <li><strong>Monetization & Back-office:</strong> ระบบเก็บค่าสมาชิก 3 ระดับ พร้อมหน้าต่างจำลองชำระเงิน และระบบตั้งค่าหลังบ้าน</li>
+            <li><strong>Ready for Vercel & Supabase:</strong> ออกแบบให้เป็น Single Page Application น้ำหนักเบา ขึ้นคลาวด์ได้ทันที พร้อม Dual-Mode Fallback</li>
+          </ul>
+        </div>
+
+        <div class="glass-card" style="padding:28px;">
+          <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:14px;color:var(--pink-600);">🏗️ สถาปัตยกรรมและเทคโนโลยีที่ใช้</h3>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="padding:12px;background:white;border-radius:var(--radius-sm);border:1px solid var(--card-border);">
+              <strong>🎨 Frontend & UI Design:</strong> Vanilla HTML5, Vanilla CSS3 (Pastel Pink Glassmorphism), Prompt/Inter Typography, Micro-animations
+            </div>
+            <div style="padding:12px;background:white;border-radius:var(--radius-sm);border:1px solid var(--card-border);">
+              <strong>📊 Data Visualization:</strong> Chart.js (Area Spline, Doughnut Chart, Rhythm Bar Chart)
+            </div>
+            <div style="padding:12px;background:white;border-radius:var(--radius-sm);border:1px solid var(--card-border);">
+              <strong>⚡ Backend & Database:</strong> Supabase (PostgreSQL 15, Row Level Security, Supabase Auth) + Local Storage Fallback
+            </div>
+            <div style="padding:12px;background:white;border-radius:var(--radius-sm);border:1px solid var(--card-border);">
+              <strong>🚀 Cloud Deployment:</strong> Vercel Platform พร้อมไฟล์คอนฟิก <code>vercel.json</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Showcase -->
+      <div class="glass-card" style="padding:32px;text-align:center;">
+        <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:20px;">🖼️ ภาพสื่อนำเสนอระบบ (System Showcase Gallery)</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div style="border-radius:var(--radius-md);overflow:hidden;border:4px solid white;box-shadow:var(--glass-shadow);">
+            <img src="assets/images/hero.jpg" alt="Hero 3D Visual" style="width:100%;height:280px;object-fit:cover;display:block;">
+            <div style="padding:12px;background:white;font-weight:500;font-size:0.9rem;">Finora 3D Hero & Dashboard Aesthetic</div>
+          </div>
+          <div style="border-radius:var(--radius-md);overflow:hidden;border:4px solid white;box-shadow:var(--glass-shadow);">
+            <img src="assets/images/analytics.jpg" alt="Analytics 3D Visual" style="width:100%;height:280px;object-fit:cover;display:block;">
+            <div style="padding:12px;background:white;font-weight:500;font-size:0.9rem;">Finora Smart Analytics & Budgeting Showcase</div>
+          </div>
+        </div>
+        <div style="margin-top:24px;">
+          <button class="btn btn-primary btn-lg" onclick="switchView('dashboard-view')">🌸 เริ่มต้นใช้งานระบบ Finora</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. Transaction Modal (Add / Edit) -->
+  <div id="transactionModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🌸 บันทึกรายการใหม่</div>
+        <button type="button" class="icon-btn modal-close">✕</button>
+      </div>
+      <form id="transactionForm">
+        <div class="modal-body">
+          <input type="hidden" id="txEditId">
+          <input type="hidden" id="txTypeInput" value="expense">
+
+          <div class="type-toggle-group">
+            <button type="button" id="typeExpenseBtn" class="type-btn-radio active expense">💸 รายจ่าย (Expense)</button>
+            <button type="button" id="typeIncomeBtn" class="type-btn-radio">💰 รายรับ (Income)</button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">จำนวนเงิน (บาท) *</label>
+            <input type="number" step="0.01" id="txAmountInput" class="form-control" placeholder="0.00" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">หมวดหมู่ *</label>
+            <select id="txCategorySelect" class="form-control" required></select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label class="form-label">วันที่ *</label>
+              <input type="date" id="txDateInput" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ช่องทางชำระเงิน</label>
+              <select id="txPaymentSelect" class="form-control">
+                <option value="promptpay">พร้อมเพย์ (PromptPay)</option>
+                <option value="credit_card">บัตรเครดิต</option>
+                <option value="bank_transfer">โอนเงินธนาคาร</option>
+                <option value="cash">เงินสด</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">บันทึกช่วยจำ (Note)</label>
+            <input type="text" id="txNoteInput" class="form-control" placeholder="เช่น ค่ากาแฟ Dirty มื้อบ่าย">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกรายการ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Category Modal (Add Category) -->
+  <div id="categoryModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🏷️ เพิ่มหมวดหมู่ใหม่</div>
+        <button type="button" class="icon-btn modal-close">✕</button>
+      </div>
+      <form id="categoryForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">ชื่อหมวดหมู่ *</label>
+            <input type="text" id="newCatName" class="form-control" placeholder="เช่น ค่าเครื่องสำอาง, ของเล่น" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ประเภทหมวดหมู่ *</label>
+            <select id="newCatType" class="form-control" required>
+              <option value="expense">รายจ่าย (Expense)</option>
+              <option value="income">รายรับ (Income)</option>
+            </select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label class="form-label">ไอคอนอีโมจิ</label>
+              <input type="text" id="newCatIcon" class="form-control" value="🏷️" placeholder="เช่น ☕, 🎮, ✈️">
+            </div>
+            <div class="form-group">
+              <label class="form-label">สีประจำหมวดหมู่</label>
+              <input type="color" id="newCatColor" class="form-control" value="#FF85A2" style="height:44px;padding:4px;cursor:pointer;">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">เพิ่มหมวดหมู่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Budget Modal (Set Category Budget) -->
+  <div id="budgetModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🎯 ตั้งงบประมาณหมวดหมู่</div>
+        <button type="button" class="icon-btn modal-close">✕</button>
+      </div>
+      <form id="budgetForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">เลือกหมวดหมู่ *</label>
+            <select id="budgetCategorySelect" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">งบประมาณสูงสุดต่อเดือน (บาท) *</label>
+            <input type="number" id="budgetAmountInput" class="form-control" placeholder="เช่น 5000" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกงบประมาณ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Subscription Checkout Simulation Modal -->
+  <div id="checkoutModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">💎 ชำระค่าสมาชิก Finora</div>
+        <button type="button" class="icon-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <input type="hidden" id="checkoutPlanIdInput">
+        <div style="font-size:1.1rem;font-weight:600;margin-bottom:4px;" id="checkoutPlanName">Finora Plus</div>
+        <div style="font-size:2rem;font-weight:700;color:var(--pink-600);margin-bottom:16px;" id="checkoutPlanPrice">99 บาท</div>
+
+        <!-- Simulated PromptPay QR Code -->
+        <div style="background:white;border:2px dashed var(--pink-300);padding:16px;border-radius:var(--radius-md);display:inline-block;margin-bottom:16px;">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://finora.app/pay/mock" alt="PromptPay QR Code" style="display:block;margin:0 auto;">
+          <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:8px;">สแกนผ่านแอปธนาคารเพื่อชำระเงิน (PromptPay)</div>
+        </div>
+
+        <p style="font-size:0.85rem;color:var(--text-secondary);">
+          ระบบจำลองการชำระเงิน (Simulated Payment Gateway) สำหรับการนำเสนอ สามารถกดปุ่มด้านล่างเพื่อจำลองการอนุมัติการชำระเงินได้ทันที
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-close">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" onclick="confirmPaymentSimulation()">✓ ยืนยันการชำระเงินจำลอง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/mockData.js"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/insights.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

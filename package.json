@@ -1,0 +1,21 @@
+{
+  "name": "finora-pos-finance",
+  "version": "1.0.0",
+  "description": "Finora - ระบบบริหารจัดการการเงินส่วนตัว (Personal Finance & Cash Flow Web App) Pastel Pink Theme",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "start": "python -m http.server 3000"
+  },
+  "keywords": [
+    "personal-finance",
+    "pos",
+    "budgeting",
+    "supabase",
+    "vercel",
+    "pastel-pink",
+    "expense-tracker"
+  ],
+  "author": "Finora Team",
+  "license": "MIT"
+}
